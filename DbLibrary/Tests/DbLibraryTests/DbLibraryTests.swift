@@ -22,7 +22,7 @@ import Testing
         name: "second",
         booleanField: false,
         firstId: first.id,
-        sizeField: 1
+        sizeField: 2
       )
     }
     .returning(\.self)
@@ -76,7 +76,7 @@ import Testing
         name: "second",
         booleanField: false,
         firstId: first.id,
-        sizeField: 1
+        sizeField: 2
       )
     }
     .returning(\.self)
