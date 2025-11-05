@@ -17,77 +17,28 @@ extension Decimal: @retroactive LosslessStringConvertible, @retroactive QueryBin
 
 @Table
 public struct First: Identifiable, Sendable, Equatable {
-  public init(id: Int, name: String, firstKind: FirstKind) {
+  public init(id: Int, name: String, description: String) {
     self.id = id
     self.name = name
-    self.firstKind = firstKind
+    self.description = description
   }
   public let id: Int
   public let name: String
-  public let firstKind: FirstKind
-  
-  @CasePathable @Selection
-  public enum FirstKind: Sendable, Equatable {
-    case decimalValue(Decimal)
-    case decimalAndUnit(First.DecimalAndUnit)
-  }
-  
-  @Selection
-  public struct DecimalAndUnit: Sendable, Equatable {
-    public init(decimalPart: Decimal, unit: String) {
-      self.decimalPart = decimalPart
-      self.unit = unit
-    }
-    public let decimalPart: Decimal
-    public let unit: String
-  }
+  public let description: String
 }
 
 @Table
 public struct Second: Identifiable, Sendable, Equatable {
-  public init(id: Int, name: String?, booleanField: Bool, firstId: Int, sizeField: Decimal) {
+  public init(id: Int, name: String, count: Int) {
     self.id = id
     self.name = name
-    self.booleanField = booleanField
-    self.firstId = firstId
-    self.sizeField = sizeField
+    self.count = count
   }
   public let id: Int
-  public let name: String?
-  public let booleanField: Bool
-  public let firstId: Int
-  public let sizeField: Decimal
+  public let name: String
+  public let count: Int
 }
 
-@Table
-public struct Third: Identifiable, Sendable, Equatable {
-  public init(
-    id: Int,
-    modifiedAt: Date,
-    createdAt: Date
-  ) {
-    self.id = id
-    self.modifiedAt = modifiedAt
-    self.createdAt = createdAt
-  }
-  public let id: Int
-  public var modifiedAt: Date
-  public var createdAt: Date
-}
-
-@Table
-public struct SecondThirdMapping: Identifiable, Sendable, Equatable {
-  public init(id: Int, thirdId: Int, secondId: Int, quantity: Decimal) {
-    self.id = id
-    self.thirdId = thirdId
-    self.secondId = secondId
-    self.quantity = quantity
-  }
-  public let id: Int
-  public let thirdId: Int
-  public let secondId: Int
-  public let quantity: Decimal
-}
 
 private let logger = Logger(subsystem: "Database", category: "Database")
 
@@ -127,9 +78,7 @@ public func appDatabase() throws -> any DatabaseWriter {
     try db.create(table: First.tableName) { table in
       table.autoIncrementedPrimaryKey(First.columns.id.name)
       table.column(First.columns.name.name, .text).notNull()
-      table.column("decimalValue", .text)
-      table.column("decimalPart", .text)
-      table.column("unit", .text)
+      table.column(First.columns.description.name, .text).notNull()
     }
   }
   
@@ -137,26 +86,7 @@ public func appDatabase() throws -> any DatabaseWriter {
     try db.create(table: Second.tableName) { table in
       table.autoIncrementedPrimaryKey(Second.columns.id.name)
       table.column(Second.columns.name.name, .text)
-      table.column(Second.columns.booleanField.name, .boolean).notNull()
-      table.column(Second.columns.firstId.name, .integer).notNull()
-      table.column(Second.columns.sizeField.name, .text).notNull()
-    }
-  }
-  
-  migrator.registerMigration("Add Third table") { db in
-    try db.create(table: Third.tableName) { table in
-      table.autoIncrementedPrimaryKey(Third.columns.id.name)
-      table.column(Third.columns.modifiedAt.name, .datetime).notNull()
-      table.column(Third.columns.createdAt.name, .datetime).notNull()
-    }
-  }
-  
-  migrator.registerMigration("Add Mapping table") { db in
-    try db.create(table: SecondThirdMapping.tableName) { table in
-      table.autoIncrementedPrimaryKey(SecondThirdMapping.columns.id.name)
-      table.column(SecondThirdMapping.columns.thirdId.name, .integer).notNull()
-      table.column(SecondThirdMapping.columns.secondId.name, .integer).notNull()
-      table.column(SecondThirdMapping.columns.quantity.name, .text).notNull()
+      table.column(Second.columns.count.name, .boolean).notNull()
     }
   }
 

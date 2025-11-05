@@ -3,26 +3,32 @@ import StructuredQueries
 import StructuredQueriesSQLite
 
 @Selection
-public struct FlattendRecords: Equatable, Identifiable, Sendable {
-  public let id: Int
-  public let first: First
-  public let second: Second
-  public let third: Third
-  public let quantity: Decimal
+public struct FirstOrSecond: Equatable, Identifiable, Sendable {
+  public let name: String
+  public let first: First?
+  public let second: Second?
   
-  public static func all() -> Select<FlattendRecords.Selection.QueryValue, SecondThirdMapping, (Third, Second, First)> {
-    SecondThirdMapping
-      .join(Third.all) { mapping, third in
-        mapping.thirdId.eq(third.id)
-      }
-      .join(Second.all) { mapping, third, second in
-        mapping.secondId.eq(second.id)
-      }
-      .join(First.all) { mapping, third, second, first in
-        second.firstId.eq(first.id)
-      }
-      .select { mapping, third, second, first in
-        FlattendRecords.Columns(id: mapping.id, first: first, second: second, third: third, quantity: mapping.quantity)
-      }
+  public var id: String {
+    if let first {
+      "first-\(first.id)"
+    } else if let second {
+      "second-\(second.id)"
+    } else {
+      "unknown"
+    }
+  }
+  
+  public static func all() -> some Statement<FirstOrSecond> {
+    let firstPart = First.select{ first in
+      return FirstOrSecond.Columns(name: first.name, first: Optional(first))
+    }
+    let secondPart = Second.select{ second in
+      return FirstOrSecond.Columns(name: second.name, second: Optional(second))
+    }
+    return With {
+      firstPart.union(all: true, secondPart)
+    } query: {
+      FirstOrSecond.order{ $0.name }
+    }
   }
 }
